@@ -1,0 +1,27 @@
+{
+  "name": "leading-nbsp",
+  "description": "merchant.name begins with U+00A0.",
+  "now": "2026-10-27T12:00:00Z",
+  "skew_seconds": 60,
+  "trusted_issuers": [
+    "offers.example"
+  ],
+  "keys": {
+    "offers.example": {
+      "keys": [
+        {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "kid": "test-1",
+          "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+          "use": "sig",
+          "alg": "EdDSA"
+        }
+      ]
+    }
+  },
+  "input": "{\"typ\":\"o2a-sponsored-offer/v0\",\"iss\":\"offers.example\",\"kid\":\"test-1\",\"campaign\":\"cmp_9x2a\",\"publisher\":{\"name\":\"DevDocs API\",\"domain\":\"devdocs.example\"},\"merchant\":{\"name\":\"\u00a0Acme Mail\",\"url\":\"https://acmemail.example/pricing\"},\"product\":\"Transactional email API, paid plans\",\"terms\":{\"kind\":\"percent_off\",\"percent\":20,\"duration_months\":3},\"claim\":\"clm_3KQ2M9XR4TBV8HNE3WPA6CJD0F\",\"exp\":\"2026-11-10T12:00:00Z\",\"sig\":\"GxYlBwK6KVpebyjxNZj-VgJgmeLsGF36lFwE5nEoDau1TBKD82SC_NdpuURwq3ET2lDk6Hsf8_2G1AicQ6X3Aw\"}",
+  "expected": {
+    "outcome": "malformed"
+  }
+}

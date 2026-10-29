@@ -1,0 +1,28 @@
+{
+  "name": "sponsored-object-without-typ",
+  "description": "An o2a_sponsored object without typ is not a candidate.",
+  "now": "2026-10-27T12:00:00Z",
+  "skew_seconds": 60,
+  "trusted_issuers": [
+    "offers.example"
+  ],
+  "keys": {
+    "offers.example": {
+      "keys": [
+        {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "kid": "test-1",
+          "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+          "use": "sig",
+          "alg": "EdDSA"
+        }
+      ]
+    }
+  },
+  "input_kind": "response",
+  "input": "{\"o2a_sponsored\":{\"label\":\"Ad\",\"advertiser\":\"Acme\"}}",
+  "expected": {
+    "outcome": "none"
+  }
+}

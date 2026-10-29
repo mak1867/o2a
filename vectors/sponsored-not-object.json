@@ -1,0 +1,28 @@
+{
+  "name": "sponsored-not-object",
+  "description": "o2a_sponsored is the string \"x\".",
+  "now": "2026-10-27T12:00:00Z",
+  "skew_seconds": 60,
+  "trusted_issuers": [
+    "offers.example"
+  ],
+  "keys": {
+    "offers.example": {
+      "keys": [
+        {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "kid": "test-1",
+          "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+          "use": "sig",
+          "alg": "EdDSA"
+        }
+      ]
+    }
+  },
+  "input_kind": "response",
+  "input": "{\"o2a_sponsored\":\"x\"}",
+  "expected": {
+    "outcome": "none"
+  }
+}

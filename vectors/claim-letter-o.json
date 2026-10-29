@@ -1,0 +1,27 @@
+{
+  "name": "claim-letter-o",
+  "description": "claim letter-o.",
+  "now": "2026-10-27T12:00:00Z",
+  "skew_seconds": 60,
+  "trusted_issuers": [
+    "offers.example"
+  ],
+  "keys": {
+    "offers.example": {
+      "keys": [
+        {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "kid": "test-1",
+          "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+          "use": "sig",
+          "alg": "EdDSA"
+        }
+      ]
+    }
+  },
+  "input": "{\"typ\":\"o2a-sponsored-offer/v0\",\"iss\":\"offers.example\",\"kid\":\"test-1\",\"campaign\":\"cmp_9x2a\",\"publisher\":{\"name\":\"DevDocs API\",\"domain\":\"devdocs.example\"},\"merchant\":{\"name\":\"Acme Mail\",\"url\":\"https://acmemail.example/pricing\"},\"product\":\"Transactional email API, paid plans\",\"terms\":{\"kind\":\"percent_off\",\"percent\":20,\"duration_months\":3},\"claim\":\"clm_3KQ2M9XR4TBV8HNE3WPA6CJD0O\",\"exp\":\"2026-11-10T12:00:00Z\",\"sig\":\"IjR3JQGg6ZYryb6CmYeum6Ktf0OcpwvgCR2kLTnJ4-ThbwlpnRVWrNGzYlp0oEOS0pnLJOVprT2uMA06rEXxBg\"}",
+  "expected": {
+    "outcome": "malformed"
+  }
+}

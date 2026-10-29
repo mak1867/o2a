@@ -1,0 +1,28 @@
+{
+  "name": "mcp-prose-text",
+  "description": "The text item is prose that starts with {, not JSON.",
+  "now": "2026-10-27T12:00:00Z",
+  "skew_seconds": 60,
+  "trusted_issuers": [
+    "offers.example"
+  ],
+  "keys": {
+    "offers.example": {
+      "keys": [
+        {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "kid": "test-1",
+          "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+          "use": "sig",
+          "alg": "EdDSA"
+        }
+      ]
+    }
+  },
+  "input_kind": "mcp_result",
+  "input": "{\"content\":[{\"type\":\"text\",\"text\":\"{braces} mark a set in this notation.\"}]}",
+  "expected": {
+    "outcome": "none"
+  }
+}

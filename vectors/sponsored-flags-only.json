@@ -1,0 +1,28 @@
+{
+  "name": "sponsored-flags-only",
+  "description": "Only \"sponsored\" and \"o2a_sponsored\" flags; no block.",
+  "now": "2026-10-27T12:00:00Z",
+  "skew_seconds": 60,
+  "trusted_issuers": [
+    "offers.example"
+  ],
+  "keys": {
+    "offers.example": {
+      "keys": [
+        {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "kid": "test-1",
+          "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+          "use": "sig",
+          "alg": "EdDSA"
+        }
+      ]
+    }
+  },
+  "input_kind": "response",
+  "input": "{\"results\":[{\"title\":\"A\",\"sponsored\":true,\"o2a_sponsored\":true}],\"sponsored\":true,\"o2a_sponsored\":false}",
+  "expected": {
+    "outcome": "none"
+  }
+}

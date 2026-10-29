@@ -1,0 +1,30 @@
+{
+  "name": "decomposed-unicode",
+  "description": "decomposed e + U+0301 verifies exactly as received.",
+  "now": "2026-10-27T12:00:00Z",
+  "skew_seconds": 60,
+  "trusted_issuers": [
+    "offers.example"
+  ],
+  "keys": {
+    "offers.example": {
+      "keys": [
+        {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "kid": "test-1",
+          "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+          "use": "sig",
+          "alg": "EdDSA"
+        }
+      ]
+    }
+  },
+  "input": "{\"typ\":\"o2a-sponsored-offer/v0\",\"iss\":\"offers.example\",\"kid\":\"test-1\",\"campaign\":\"cmp_9x2a\",\"publisher\":{\"name\":\"DevDocs API\",\"domain\":\"devdocs.example\"},\"merchant\":{\"name\":\"Cafe\u0301 Mail\",\"url\":\"https://acmemail.example/pricing\"},\"product\":\"Transactional email API, paid plans\",\"terms\":{\"kind\":\"percent_off\",\"percent\":20,\"duration_months\":3},\"claim\":\"clm_3KQ2M9XR4TBV8HNE3WPA6CJD0F\",\"exp\":\"2026-11-10T12:00:00Z\",\"sig\":\"AgPYd9BrRwKz516f2j-zFDDkDzXFuncbjwNgmMx4pGelgFnnG41rZ2Jf2lymwn3-LM89e92Iz1HSpIMRloRFDg\"}",
+  "expected": {
+    "outcome": "valid",
+    "offer_id": "off_a33e5dd43a75be430b008d47",
+    "canonical_hex": "7b2263616d706169676e223a22636d705f39783261222c22636c61696d223a22636c6d5f334b51324d3958523454425638484e453357504136434a443046222c22657870223a22323032362d31312d31305431323a30303a30305a222c22697373223a226f66666572732e6578616d706c65222c226b6964223a22746573742d31222c226d65726368616e74223a7b226e616d65223a2243616665cc81204d61696c222c2275726c223a2268747470733a2f2f61636d656d61696c2e6578616d706c652f70726963696e67227d2c2270726f64756374223a225472616e73616374696f6e616c20656d61696c204150492c207061696420706c616e73222c227075626c6973686572223a7b22646f6d61696e223a22646576646f63732e6578616d706c65222c226e616d65223a22446576446f637320415049227d2c227465726d73223a7b226475726174696f6e5f6d6f6e746873223a332c226b696e64223a2270657263656e745f6f6666222c2270657263656e74223a32307d2c22747970223a226f32612d73706f6e736f7265642d6f666665722f7630227d",
+    "sig": "AgPYd9BrRwKz516f2j-zFDDkDzXFuncbjwNgmMx4pGelgFnnG41rZ2Jf2lymwn3-LM89e92Iz1HSpIMRloRFDg"
+  }
+}
