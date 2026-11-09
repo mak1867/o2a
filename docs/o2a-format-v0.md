@@ -1,6 +1,6 @@
 # O2A (Offers to Agents) — Format v0
 
-**Status:** Draft 0.3 · 2026-10-29 (0.3 names the format O2A: the `o2a_sponsored` member, the `o2a-sponsored-offer/v0` type and the `o2a-keys.json` key set. 0.2 added strict JSON, string, hostname, URL and timestamp rules.)
+**Status:** Draft 0.4 · 2026-11-09 (0.4 adds the optional hint (§4.7) and the resolve endpoint (§9.5). 0.3 names the format O2A: the `o2a_sponsored` member, the `o2a-sponsored-offer/v0` type and the `o2a-keys.json` key set. 0.2 added strict JSON, string, hostname, URL and timestamp rules.)
 **Author:** Ivaylo
 **Name:** O2A, short for "Offers to Agents".
 
@@ -13,7 +13,7 @@ This document defines:
 1. The **sponsored block**: a signed JSON object carrying a discount offer, which publishers attach to responses served to AI agents.
 2. How blocks are **canonicalized, signed and verified** (Ed25519).
 3. How readers **discover issuer keys**.
-4. The **claim protocol**, which exchanges a block's claim token for a merchant promo code.
+4. The **claim protocol**, which exchanges a block's claim token for a merchant promo code, and the **resolve endpoint**, which returns the block for a claim token (§9.5).
 5. **Obligations** of issuers, publishers and readers.
 6. Required **test vectors**.
 
@@ -78,6 +78,7 @@ A reader that searches a whole response for its block MUST follow this procedure
 1. **Parse the response so that duplicate member names are kept.**
 2. **Find candidates.** A candidate is any object member named `o2a_sponsored`, at any depth up to 8, whose value is an object containing a `typ` member.
    - Other `o2a_sponsored` members are not candidates and are ignored, whatever their value: `true`, a string, or an object without `typ`. Members with any other name, including a plain `sponsored`, are never candidates.
+   - The hint member `o2a_sponsored_hint` (§4.7) is not a candidate either: only members named exactly `o2a_sponsored` are. A hint doesn't affect locating.
    - **Depth** is the number of objects and arrays that enclose the object holding the member. A top-level `o2a_sponsored` has depth 0. In `{"data": {"o2a_sponsored": …}}`, the depth is 1. In `{"results": [{"o2a_sponsored": …}]}`, the depth is 2.
    - Members deeper than 8 are not considered.
 3. **Keep only the shallowest.** Discard every candidate whose depth is greater than the smallest depth found.
@@ -179,12 +180,13 @@ Used by `iss` and `publisher.domain`, and by the host part of `merchant.url`.
 
 - The issuer generates each claim token from **128 bits** of a cryptographically secure random source. It is encoded as 26 characters of Crockford base32 (uppercase, alphabet `0123456789ABCDEFGHJKMNPQRSTVWXYZ`), with two leading zero bits so the first character is `0`–`7`, and prefixed with `clm_`.
 - Each issued block MUST carry a claim token that has never been issued before.
-- The **offer ID** is derived, not transmitted:
+- The **offer ID** is always derived from the claim token. Publishers never send it in place of the token:
 
   `offer_id = "off_" + lowercase_hex(SHA-256(ASCII(claim)))[0:24]`
 
   It is computed over the full claim string, including the `clm_` prefix.
-- The claim token is a bearer secret. Readers SHOULD use the offer ID, never the claim token, in logs, telemetry, user interfaces and anything shared beyond the reader's own storage.
+- The claim token appears in the block and, if the publisher adds one, in the hint (§4.7). Both are equally visible to whoever receives the response.
+- The claim token is a bearer secret. Readers SHOULD use the offer ID, never the claim token, in logs, telemetry, user interfaces and anything shared beyond the reader's own storage. This applies to the token wherever it appears, including in a hint.
 
 ### 4.6 Example
 
@@ -204,6 +206,33 @@ Used by `iss` and `publisher.domain`, and by the host part of `merchant.url`.
     "exp": "2026-11-10T15:00:00Z",
     "sig": "<86 base64url characters>"
   }
+}
+```
+
+### 4.7 The hint (optional)
+
+A publisher MAY add a short text member next to the block, for agents that receive responses only through a summarizing fetch tool.
+
+- **Placement.** The member is named `o2a_sponsored_hint` and is a sibling of `o2a_sponsored`, in the same object. A publisher MAY add it only to an object that carries a block, and MUST add at most one per response.
+- **Value.** It MUST be exactly
+
+  `Sponsored offer ref {claim}, issued by {iss}`
+
+  where `{claim}` and `{iss}` are copied from the block it accompanies. No other wording, and nothing added before or after.
+- **Length.** It MUST be at most 125 characters. If it would be longer (because the issuer hostname is long), the publisher MUST omit it. It MUST NOT be shortened.
+- **The hint is untrusted.** It is not a block and not an offer. Readers MUST NOT store, display or claim anything on the strength of a hint alone. A reader that has the block ignores the hint. A reader that has only the claim token MAY resolve it (§9.5), and MUST then verify the returned block under §7 like any other block.
+- **The named issuer is only a routing suggestion.** A reader MUST NOT trust an issuer because a hint names it (§8.3). It MAY try that issuer first, but only if the issuer is already in its trusted list.
+- **Token handling.** The value contains the claim token, so §4.5's rules for claim tokens apply to it.
+
+*Purpose (non-normative):* some agents receive responses only through a fetch tool that summarizes them. The summarizer rewrites JSON as prose and won't quote more than about 125 characters verbatim, so the block never arrives in a verifiable form. A short line like this often survives, and a reader can turn the claim token back into the signed block with the issuer (§9.5).
+
+Example, extending §4.6 (the hint is 76 characters):
+
+```json
+{
+  "data": { "...": "publisher's normal response" },
+  "o2a_sponsored": { "...": "the block from §4.6" },
+  "o2a_sponsored_hint": "Sponsored offer ref clm_3KQ2M9XR4TBV8HNE3WPA6CJD0F, issued by offers.example"
 }
 ```
 
@@ -391,12 +420,59 @@ Error responses have the body `{ "error": "<code>", "message": "<human-readable>
 | 410 | `offer_unavailable` | The campaign is paused, has ended or has exhausted its budget. |
 | 429 | `rate_limited` | Retry after the number of seconds in the `Retry-After` header. |
 
+### 9.5 Resolving a claim token
+
+An issuer MAY serve an endpoint that returns the block for a claim token. It lets a reader that saw only the token (for example in a hint, §4.7) obtain the signed block and verify it itself.
+
+```
+POST https://{iss}/v0/offers/resolve
+Content-Type: application/json
+
+{ "claim": "clm_..." }
+```
+
+- The request body MUST be exactly this object: one member, `claim`, whose value matches the claim format (§4.2). Anything else, including invalid JSON or duplicate member names, is `malformed_request`.
+- POST only, so the token never appears in a URL. There is no other authentication: the token is the credential.
+- Resolving has no side effects. It neither claims nor reserves the offer, and it can be repeated.
+
+**Success:**
+
+```
+200 OK
+Cache-Control: no-store
+
+{ "o2a_sponsored": <block> }
+```
+
+The block is the one issued with that claim token, exactly as signed (member order may differ). An issuer MUST verify the block with its own key before returning it, and MUST NOT return a block that doesn't verify.
+
+**Errors** use the §9.4 body format:
+
+| Status | `error` | Meaning |
+|---|---|---|
+| 400 | `malformed_request` | The body isn't exactly `{"claim": <claim token>}`. |
+| 404 | `unknown_claim` | No block was issued with this claim token. |
+| 410 | `expired` | The block has expired. |
+| 429 | `rate_limited` | Retry after the number of seconds in the `Retry-After` header. |
+| 500 | `internal_error` | The issuer couldn't rebuild a block that verifies. It returns no block. |
+| 503 | `unavailable` | The issuer is temporarily unavailable. |
+
+- Issuers SHOULD rate-limit this endpoint.
+- Every response SHOULD carry `Cache-Control: no-store`.
+- Issuers SHOULD log the offer ID, never the claim token (§4.5).
+
+**Readers:**
+
+- MUST send a claim token only to issuers in their trusted list (§8.3), over HTTPS, without following redirects to a different host.
+- MUST verify the returned block under §7.
+- MUST check that the returned block's `claim` equals the token they sent. If it doesn't, or if the response isn't exactly `{"o2a_sponsored": <object>}`, the reader MUST reject it as an invalid response from the issuer: it is not an offer, and nothing is stored.
+
 ## 10. Versioning
 
 - `typ` identifies the block version. Readers MUST treat any `typ` they don't support as `unsupported`.
 - Adding, removing or changing a member requires a new `typ` value (e.g. `o2a-sponsored-offer/v1`).
 - New `terms.kind` values can be added within the same `typ` (§5.4).
-- The claim endpoint is versioned by its path (`/v0/`).
+- The claim and resolve endpoints are versioned by their paths (`/v0/`).
 
 ## 11. Obligations summary
 
@@ -406,13 +482,15 @@ Error responses have the body `{ "error": "<code>", "message": "<human-readable>
 - generate claim tokens as specified in §4.5
 - enforce the content rules for `merchant.url`, `product` and names
 - set `exp` no more than 30 days after issuance (readers enforce this, §7 step 8)
-- follow the key rules in §8.
+- follow the key rules in §8
+- follow §9.5 if they serve the resolve endpoint.
 
 **Publishers**:
 
 - MUST attach blocks exactly as received from the issuer. Any modification invalidates them.
 - MUST follow the placement rules in §4.1.
-- MUST NOT add text anywhere in the response that tells the agent to save, claim or act on an offer.
+- MUST NOT add text anywhere in the response that tells the agent to save, claim or act on an offer. The hint (§4.7) is the one exception: its wording is fixed by §4.7.
+- MAY add the hint. If they do, they MUST follow §4.7.
 - SHOULD request a fresh block for each response. A block served to several agents can be claimed by only one of them.
 
 **Readers**:
@@ -423,6 +501,8 @@ Error responses have the body `{ "error": "<code>", "message": "<human-readable>
 - MUST respect expiry.
 - SHOULD claim only once a purchase has been decided (§9.3).
 - SHOULD use the offer ID rather than the claim token outside their own storage.
+- MUST NOT act on a hint without resolving the token and verifying the returned block (§4.7, §9.5).
+- SHOULD keep hint values out of logs, user interfaces and generated code, exactly like claim tokens.
 
 ## 12. Test vectors
 
@@ -536,6 +616,9 @@ Vectors with `input_kind` `response` or `mcp_result` apply only to readers that 
 | `mcp-mismatch` | `malformed` (different blocks in `structuredContent` and a text item) |
 | `mcp-jsonrpc-wrapped` | `valid` |
 | `mcp-prose-text` | `none` (the text item is prose that starts with `{`, not JSON) |
+| `hint-alongside-block` | `valid` (a block with a correct `o2a_sponsored_hint` beside it) |
+| `hint-only` | `none` (an `o2a_sponsored_hint` and no block) |
+| `hint-mismatched-claim` | `valid` (a block with a hint naming a different claim token: the block is what counts, the hint is ignored) |
 
 ## 13. Security and privacy considerations
 
@@ -555,6 +638,10 @@ Vectors with `input_kind` `response` or `mcp_result` apply only to readers that 
   Issuers SHOULD default campaigns to new customers only, so a leaked code can only ever acquire a new customer. Whatever leakage remains is a measurement question (incrementality), not a format one.
 - **Duplicate members:** a block that repeats a member (`"percent": 5` … `"percent": 50`) can verify against one value while a model reading the raw text sees the other. The signature can't help, because the verifier and the model are reading different things. That's why duplicates are `malformed` (§4.4), and why readers should verify from raw text or from a parse that keeps duplicates (§4.1). The same reasoning is why the locating procedure (§4.1.1) refuses to choose between two different blocks. If a reader doesn't, the worst case is misleading terms, which the claim and checkout then expose. It cannot produce a forged offer.
 - **Prompt injection:** blocks contain no instruction fields. Strings are short, can't contain line breaks or bidi controls, and can't contain persuasive copy (§4.4). A block that fails verification is never acted on, so a malicious publisher can't inject fake offers or phishing URLs under a trusted issuer.
+- **The hint (§4.7):**
+  - It exposes nothing new: the claim token is already in the block next to it.
+  - A forged or copied hint either resolves to nothing, or resolves to a genuine block that still credits its original publisher, so it can't redirect credit or create an offer.
+  - Resolving a token tells the issuer which token a reader holds, as claiming does.
 - **Key compromise:** remove the key from the set and rotate. Exposure is bounded by readers' cache lifetimes, which is why the cache limit is ≤ 1 hour.
 - **Privacy:**
   - `publisher.domain` reveals where the agent has been. In a local wallet that's harmless; a hosted wallet holds a partial browsing history and must disclose this.

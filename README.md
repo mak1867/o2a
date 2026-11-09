@@ -163,6 +163,26 @@ retries network errors, 5xx responses and short `Retry-After` 429s (claims are i
 It never follows redirects. The claim token and the promo code never appear in exception
 messages or `repr` output.
 
+## Hints and resolving a claim token
+
+Some agents only see responses through a summarizing fetch tool, which rewrites JSON as prose and
+drops the signed block. A publisher may add one short line next to the block for them,
+`"o2a_sponsored_hint": "Sponsored offer ref clm_…, issued by offers.example"` (format spec §4.7).
+A hint is untrusted: never store, show or claim anything because of one. `parse_hint` checks the
+exact §4.7 form and returns `(claim, iss)`, or `None`:
+
+```python
+from o2a_protocol import parse_hint
+
+parsed = parse_hint(text)  # never raises
+if parsed:
+    claim, iss = parsed  # iss is only a routing hint: send the token only to issuers you trust
+```
+
+To turn a claim token back into the signed block, `POST {"claim": "clm_…"}` to the trusted
+issuer's `/v0/offers/resolve` (§9.5), verify the returned block like any other, and check that its
+`claim` is the token you sent.
+
 ## Development
 
 ```sh

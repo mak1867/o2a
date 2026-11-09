@@ -5,6 +5,7 @@ See ``docs/o2a-format-v0.md``. Everything not listed in ``__all__`` is private.
 
 from .canonical import canonicalize
 from .extract import ExtractionReport, extract, get_path
+from .hint import parse_hint
 from .ids import new_claim_token, offer_id
 from .keys import ChainedKeyResolver, KeyResolver, StaticKeyResolver, make_jwks, parse_jwks
 from .model import AmountOff, Merchant, Offer, PercentOff, Publisher
@@ -47,6 +48,7 @@ __all__ = [
     "make_jwks",
     "new_claim_token",
     "offer_id",
+    "parse_hint",
     "parse_jwks",
     "parse_strict_json",
     "parse_tolerant",

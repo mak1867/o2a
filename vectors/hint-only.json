@@ -1,0 +1,28 @@
+{
+  "name": "hint-only",
+  "description": "An o2a_sponsored_hint and no block: a hint is not a block, so there is none.",
+  "now": "2026-10-27T12:00:00Z",
+  "skew_seconds": 60,
+  "trusted_issuers": [
+    "offers.example"
+  ],
+  "keys": {
+    "offers.example": {
+      "keys": [
+        {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "kid": "test-1",
+          "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+          "use": "sig",
+          "alg": "EdDSA"
+        }
+      ]
+    }
+  },
+  "input_kind": "response",
+  "input": "{\"data\":{\"total\":0},\"o2a_sponsored_hint\":\"Sponsored offer ref clm_3KQ2M9XR4TBV8HNE3WPA6CJD0F, issued by offers.example\"}",
+  "expected": {
+    "outcome": "none"
+  }
+}

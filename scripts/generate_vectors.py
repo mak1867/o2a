@@ -751,6 +751,33 @@ def build() -> dict[str, dict[str, Any]]:
         {"content": [{"type": "text", "text": "{braces} mark a set in this notation."}]},
         "none",
     )
+
+    # --- The hint (§4.7) is never a candidate and never changes the outcome ---------------
+    def hint(claim: str) -> str:
+        return f"Sponsored offer ref {claim}, issued by {base['iss']}"
+
+    in_response(
+        "hint-alongside-block",
+        "A block with a correct o2a_sponsored_hint beside it: the block is located as usual.",
+        dumps(
+            {"data": {"total": 0}, "o2a_sponsored": base, "o2a_sponsored_hint": hint(base["claim"])}
+        ),
+        "valid",
+    )
+    in_response(
+        "hint-only",
+        "An o2a_sponsored_hint and no block: a hint is not a block, so there is none.",
+        dumps({"data": {"total": 0}, "o2a_sponsored_hint": hint(base["claim"])}),
+        "none",
+    )
+    in_response(
+        "hint-mismatched-claim",
+        "A block with a hint naming a different claim: the block counts, the hint is ignored.",
+        dumps(
+            {"data": {"total": 0}, "o2a_sponsored": base, "o2a_sponsored_hint": hint(OTHER_CLAIM)}
+        ),
+        "valid",
+    )
     return v.items
 
 
