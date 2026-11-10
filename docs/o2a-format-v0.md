@@ -1,6 +1,6 @@
 # O2A (Offers to Agents) — Format v0
 
-**Status:** Draft 0.4 · 2026-11-09 (0.4 adds the optional hint (§4.7) and the resolve endpoint (§9.5). 0.3 names the format O2A: the `o2a_sponsored` member, the `o2a-sponsored-offer/v0` type and the `o2a-keys.json` key set. 0.2 added strict JSON, string, hostname, URL and timestamp rules.)
+**Status:** Draft 0.5 · 2026-11-10 (0.5 adds `503 unavailable` to the claim errors (§9.4). 0.4 adds the optional hint (§4.7) and the resolve endpoint (§9.5). 0.3 names the format O2A: the `o2a_sponsored` member, the `o2a-sponsored-offer/v0` type and the `o2a-keys.json` key set. 0.2 added strict JSON, string, hostname, URL and timestamp rules.)
 **Author:** Ivaylo
 **Name:** O2A, short for "Offers to Agents".
 
@@ -419,6 +419,7 @@ Error responses have the body `{ "error": "<code>", "message": "<human-readable>
 | 410 | `already_claimed` | The token's claim limit has been reached by another buyer. |
 | 410 | `offer_unavailable` | The campaign is paused, has ended or has exhausted its budget. |
 | 429 | `rate_limited` | Retry after the number of seconds in the `Retry-After` header. |
+| 503 | `unavailable` | The issuer is temporarily unavailable; retry later. |
 
 ### 9.5 Resolving a claim token
 
