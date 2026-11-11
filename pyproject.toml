@@ -1,11 +1,11 @@
 [project]
 name = "o2a-protocol"
-version = "0.1.0"
+version = "0.5.0"
 description = "Reference implementation of O2A (Offers to Agents) Format v0: strict parsing, validation, signing and verification of sponsored blocks."
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-authors = [{ name = "Ivaylo Maksimov", email = "imaks2@illinois.edu" }]
+authors = [{ name = "Ivaylo Maksimov", email = "215309870+mak1867@users.noreply.github.com" }]
 requires-python = ">=3.12"
 dependencies = [
     "cryptography>=50.0.2",
