@@ -18,7 +18,7 @@ def hint(claim: str = CLAIM, iss: str = "offers.example") -> str:
 def test_valid() -> None:
     assert parse_hint(hint()) == (CLAIM, "offers.example")
     fresh = new_claim_token()
-    assert parse_hint(hint(fresh, "agent-ads.vercel.app")) == (fresh, "agent-ads.vercel.app")
+    assert parse_hint(hint(fresh, "o2a.exchange")) == (fresh, "o2a.exchange")
 
 
 def test_length_limit_is_125_characters() -> None:
